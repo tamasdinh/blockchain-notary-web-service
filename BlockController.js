@@ -1,6 +1,7 @@
 const SHA256 = require('crypto-js/sha256');
 const BlockClass = require('./Block.js');
 const BlockChain = require('./BlockChain.js')
+const Mempool = require('./memPool.js')
 
 /**
  * Controller Definition to encapsulate routes to work with blocks
@@ -14,9 +15,11 @@ class BlockController {
     constructor(app) {
         this.app = app;
         this.blockChain = new BlockChain.Blockchain();
+        this.memPool = new Mempool.Mempool();
         this.initializeMockData();
         this.getBlockByIndex();
         this.postNewBlock();
+        this.postValidationRequest();
     }
 
     /**
@@ -50,6 +53,22 @@ class BlockController {
             } else {
                 res.status(403).send('Block data must not be empty - please resend request with json object containing desired block data.\n\n')
             }
+        });
+    }
+
+    // Post validation request
+    postValidationRequest(){
+        let self = this;
+        self.app.post("/requestvalidation", async function (req, res) {
+            let requestObject = {
+                walletAddress: req.body.address,
+                requestTimeStamp: new Date().getTime().toString().slice(0,-3),
+                message: '',
+                validationWindow: 0
+            };
+            requestObject = await self.memPool.addRequestValidation(requestObject);
+            requestObject = await self.memPool.setTimeOut(requestObject);
+            return res.status(201).json(requestObject);
         });
     }
 
