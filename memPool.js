@@ -69,6 +69,7 @@ class Mempool {
                 validRequest.status.messageSignature = 'valid';
                 validRequest.registerStar = true;
                 self.memPoolValid.push(validRequest);
+                self.memPool.splice(self.memPool.indexOf(requestObject), 1);
                 console.log(self.memPoolValid); // VERBOSE
             }
         } else {
