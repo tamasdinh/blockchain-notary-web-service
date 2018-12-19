@@ -20,6 +20,7 @@ class BlockController {
         this.getBlockByIndex();
         this.postNewBlock();
         this.postValidationRequest();
+        this.messageSignatureValidation();
     }
 
     /**
@@ -59,17 +60,32 @@ class BlockController {
     // Post validation request
     postValidationRequest(){
         let self = this;
-        self.app.post("/requestvalidation", async function (req, res) {
+        self.app.post("/requestValidation", async function (req, res) {
             let requestObject = {
                 walletAddress: req.body.address,
                 requestTimeStamp: new Date().getTime().toString().slice(0,-3),
-                message: '',
+                message: req.body.address + ':' + new Date().getTime().toString().slice(0,-3) + ':' + 'starRegistry',
                 validationWindow: 0
             };
-            requestObject = await self.memPool.addRequestValidation(requestObject);
-            requestObject = await self.memPool.setTimeOut(requestObject);
-            return res.status(201).json(requestObject);
+            self.memPool.setTimeOut(requestObject)
+            .then(async result => {
+                requestObject = result;
+                requestObject = await self.memPool.addRequestValidation(requestObject);
+                return res.status(201).json(requestObject);
+            }).catch((err) => {
+                return res.status(403).send(`WalletAddress already in Mempool - please handle already submitted address validation request`)});
         });
+    }
+
+    messageSignatureValidation(){
+        let self = this;
+        this.app.post("/message-signature/validate", (req, res) => {
+            self.memPool.validateWalletSignature()
+            .then(result => {
+                return res.status(201).json(result)
+            }).catch(err => {
+                return res.status(403).send('Message signature invalid. Please resend correct message signature.')})
+        })
     }
 
     /**
