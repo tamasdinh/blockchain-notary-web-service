@@ -1,7 +1,8 @@
 const SHA256 = require('crypto-js/sha256');
 const BlockClass = require('./Block.js');
-const BlockChain = require('./BlockChain.js')
-const Mempool = require('./memPool.js')
+const BlockChain = require('./BlockChain.js');
+const Mempool = require('./memPool.js');
+const hex2ascii = require('hex2ascii');
 
 /**
  * Controller Definition to encapsulate routes to work with blocks
@@ -21,6 +22,7 @@ class BlockController {
         this.postNewBlock();
         this.postValidationRequest();
         this.messageSignatureValidation();
+        this.starRequestValidation();
     }
 
     /**
@@ -87,6 +89,31 @@ class BlockController {
             }).catch(err => {
                 console.log(err);
                 res.status(403).send('Message signature invalid. Please resend correct message signature.')})
+        })
+    }
+
+    starRequestValidation(){
+        let self = this;
+        this.app.post('/block', (req, res) => {
+            if (self.memPool.validateAddressRequest(req.body.address)) {
+                let body = {
+                    address: req.body.address,
+                    star: {
+                        ra: req.body.star.ra,
+                        dec: req.body.star.dec,
+                        story: new Buffer.from(req.body.star.story).toString('hex')
+                    }
+                }
+                self.blockChain.addBlock(new BlockClass.Block(body))
+                .then(result => {
+                    result.body.star.storyDecoded = hex2ascii(result.body.star.story);
+                    res.status(201).json(result)
+                }).catch(err => {
+                    res.status(403).send('Star block could not be created at this time. Please attempt addition at a later time.')
+                })
+            } else {
+                return res.status(403).send('Submitted wallet address has not been validated for star registry. Please validate your address at http://localhost:8000/message-signature/validate or resubmit it for validation request at http://localhost:8000/requestValidation.')
+            }
         })
     }
 

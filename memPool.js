@@ -68,7 +68,7 @@ class Mempool {
             if (isValidSignature === true) {
                 validRequest.status.messageSignature = 'valid';
                 validRequest.registerStar = true;
-                self.memPoolValid.push(validRequest);
+                self.memPoolValid.push(validRequest.status.walletAddress);
                 self.memPool.splice(self.memPool.indexOf(requestObject), 1);
                 console.log(self.memPoolValid); // VERBOSE
             }
@@ -76,6 +76,12 @@ class Mempool {
             throw new Error;
         }
         return validRequest;
+    }
+
+    validateAddressRequest(requestAddress) {
+        let isValid = this.memPoolValid.includes(requestAddress);
+        this.memPoolValid.splice(this.memPoolValid.indexOf(requestAddress), 1);
+        return isValid;
     }
 
 }
