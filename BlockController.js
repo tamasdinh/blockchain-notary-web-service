@@ -17,7 +17,7 @@ class BlockController {
         this.app = app;
         this.blockChain = new BlockChain.Blockchain();
         this.memPool = new Mempool.Mempool();
-        this.initializeMockData();
+        //this.initializeMockData();
         this.getBlockByIndex();
         this.postNewBlock();
         this.postValidationRequest();
@@ -25,6 +25,7 @@ class BlockController {
         this.starRequestValidation();
         this.getStarBlockByHash();
         this.getBlockByWalletAddress();
+        this.getStarBlockByHeight();
     }
 
     /**
@@ -68,8 +69,7 @@ class BlockController {
             let requestObject = {
                 walletAddress: req.body.address,
                 requestTimeStamp: new Date().getTime().toString().slice(0,-3),
-                //message: req.body.address + ':' + new Date().getTime().toString().slice(0,-3) + ':' + 'starRegistry',
-                message: req.body.address + ':' + 'starRegistry', // TODO: swap with above
+                message: req.body.address + ':' + new Date().getTime().toString().slice(0,-3) + ':' + 'starRegistry',
                 validationWindow: 0
             };
             self.memPool.setTimeOut(requestObject)
@@ -155,20 +155,33 @@ class BlockController {
         })
     }
 
-    /**
+    getStarBlockByHeight() {
+        let self = this;
+        this.app.get('/block/:height', (req, res) => {
+            self.blockChain.getBlock(req.params.height)
+            .then((result) => {
+                result.body.star.storyDecoded = hex2ascii(result.body.star.story);
+                res.status(200).json(result);
+            }).catch(err => {
+                res.status(403).send(`Error occurred when trying to obtain star block #${req.params.height}`);
+            })
+        })
+    }
+
+    /*
      * Help method to inizialized Mock dataset, adds 10 test blocks to the blocks array
-     */
-    async initializeMockData() {
-        let blockHeight = await this.blockChain.getBlockHeight();
-        if(blockHeight === 0){
-            for (let index = 1; index < 10; index++) {
-                let blockAux = new BlockClass.Block(`Test Data #${index}`);
-                blockAux.height = index;
-                blockAux.hash = SHA256(JSON.stringify(blockAux)).toString();
-                await this.blockChain.addBlock(blockAux);
+     async initializeMockData() {
+         let blockHeight = await this.blockChain.getBlockHeight();
+         if(blockHeight === 0){
+             for (let index = 1; index < 10; index++) {
+                 let blockAux = new BlockClass.Block(`Test Data #${index}`);
+                 blockAux.height = index;
+                 blockAux.hash = SHA256(JSON.stringify(blockAux)).toString();
+                 await this.blockChain.addBlock(blockAux);
+                }
             }
         }
-    }
+    */
 
 }
 
