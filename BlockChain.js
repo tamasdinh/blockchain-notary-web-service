@@ -63,6 +63,11 @@ class Blockchain {
         return await this.db.getLevelDBData(height);
     }
 
+    // Get block by hash
+    async getBlockByHash(hash) {
+        return await this.db.getLevelDBDataByHash(hash);
+    }
+
     // Validate if Block is being tampered by Block Height
     validateBlock(height) {
         return this.db.getLevelDBData(height).then(function(result) {

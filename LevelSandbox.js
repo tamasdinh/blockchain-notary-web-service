@@ -58,7 +58,27 @@ class LevelSandbox {
             })
         })
     }
-        
+    
+    // Get block by hash
+    getLevelDBDataByHash(hash) {
+        let self = this;
+        let block = null;
+        return new Promise(function(resolve, reject) {
+            self.db.createValueStream()
+            .on('data', function(data) {
+                if (data.hash === hash) {
+                    block = data;
+                }
+            })
+            .on('error', function(err) {
+                reject(err);
+            })
+            .on('close', function() {
+                resolve(block);
+            })
+        })
+    }
+
 }
 
 module.exports.LevelSandbox = LevelSandbox;

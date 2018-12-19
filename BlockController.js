@@ -23,6 +23,7 @@ class BlockController {
         this.postValidationRequest();
         this.messageSignatureValidation();
         this.starRequestValidation();
+        this.getStarBlockByHash();
     }
 
     /**
@@ -115,6 +116,23 @@ class BlockController {
                 return res.status(403).send('Submitted wallet address has not been validated for star registry. Please validate your address at http://localhost:8000/message-signature/validate or resubmit it for validation request at http://localhost:8000/requestValidation.')
             }
         })
+    }
+
+    getStarBlockByHash() {
+        let self = this;
+        this.app.get('/stars/:hash/', (req, res) => {
+            self.blockChain.getBlockByHash(req.params.hash)
+            .then(result => {
+                if (result !== null) {
+                    result.body.star.storyDecoded = hex2ascii(result.body.star.story)
+                    res.status(200).json(result)
+                } else {
+                    throw new Error;
+                }
+            }).catch(err => {
+                res.status(403).send(`Star block with hash: "${req.params.hash}" not found`)
+            })
+            })
     }
 
     /**
