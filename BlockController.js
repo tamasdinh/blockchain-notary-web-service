@@ -24,6 +24,7 @@ class BlockController {
         this.messageSignatureValidation();
         this.starRequestValidation();
         this.getStarBlockByHash();
+        this.getBlockByWalletAddress();
     }
 
     /**
@@ -120,12 +121,12 @@ class BlockController {
 
     getStarBlockByHash() {
         let self = this;
-        this.app.get('/stars/:hash/', (req, res) => {
+        this.app.get('/stars/hash/:hash', (req, res) => {
             self.blockChain.getBlockByHash(req.params.hash)
             .then(result => {
                 if (result !== null) {
-                    result.body.star.storyDecoded = hex2ascii(result.body.star.story)
-                    res.status(200).json(result)
+                    result.body.star.storyDecoded = hex2ascii(result.body.star.story);
+                    res.status(200).json(result);
                 } else {
                     throw new Error;
                 }
@@ -133,6 +134,25 @@ class BlockController {
                 res.status(403).send(`Star block with hash: "${req.params.hash}" not found`)
             })
             })
+    }
+
+    getBlockByWalletAddress() {
+        let self = this;
+        this.app.get('/stars/address/:address', (req, res) => {
+            self.blockChain.getBlockByWalletAddress(req.params.address)
+            .then(result => {
+                if (result.length > 0) {
+                    for (let i = 0; i < result.length; i++) {
+                        result[i].body.star.storyDecoded = hex2ascii(result[i].body.star.story);
+                    }
+                    res.status(200).json(result)
+                } else {
+                    throw new Error;
+                }
+            }).catch(err => {
+                res.status(403).send(`No star block with wallet address ${req.params.address} found`)
+            })
+        })
     }
 
     /**

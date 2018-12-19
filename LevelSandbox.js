@@ -79,6 +79,26 @@ class LevelSandbox {
         })
     }
 
+    // Get block by wallet address
+    getLevelDBDataByWalletAddress(walletAddress) {
+        let self = this;
+        let blockArray = [];
+        return new Promise(function(resolve, reject) {
+            self.db.createValueStream()
+            .on('data', function(data) {
+                if (data.body.address === walletAddress) {
+                    blockArray.push(data);
+                }
+            })
+            .on('error', function(err) {
+                reject(err);
+            })
+            .on('close', function() {
+                resolve(blockArray);
+            })
+        })
+    }
+
 }
 
 module.exports.LevelSandbox = LevelSandbox;
