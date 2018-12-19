@@ -64,7 +64,8 @@ class BlockController {
             let requestObject = {
                 walletAddress: req.body.address,
                 requestTimeStamp: new Date().getTime().toString().slice(0,-3),
-                message: req.body.address + ':' + new Date().getTime().toString().slice(0,-3) + ':' + 'starRegistry',
+                //message: req.body.address + ':' + new Date().getTime().toString().slice(0,-3) + ':' + 'starRegistry',
+                message: req.body.address + ':' + 'starRegistry', // TODO: swap with above
                 validationWindow: 0
             };
             self.memPool.setTimeOut(requestObject)
@@ -80,11 +81,12 @@ class BlockController {
     messageSignatureValidation(){
         let self = this;
         this.app.post("/message-signature/validate", (req, res) => {
-            self.memPool.validateWalletSignature()
+            self.memPool.validateWalletSignature(req)
             .then(result => {
                 return res.status(201).json(result)
             }).catch(err => {
-                return res.status(403).send('Message signature invalid. Please resend correct message signature.')})
+                console.log(err);
+                res.status(403).send('Message signature invalid. Please resend correct message signature.')})
         })
     }
 

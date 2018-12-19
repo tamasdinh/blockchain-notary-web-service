@@ -47,28 +47,30 @@ class Mempool {
     }
 
     // Set validation by wallet
-    async validateWalletSignature(validRequest) {
+    async validateWalletSignature(request) {
         let self = this;
         let isIncludedinMemPool;
-            for (i = 0; i < self.memPool.length; i++) {
-                if (self.memPool[i].walletAddress === req.address) {
-                    isIncludedinMemPool = i;
-                }
+        let requestObject;
+        let validRequest;
+        for (let i = 0; i < self.memPool.length; i++) {
+            if (self.memPool[i].walletAddress === request.body.address) {
+                isIncludedinMemPool = i;
             }
-            if (isIncludedinMemPool >= 0) {
-                requestObject = self.memPool[i];
-                requestObject.messageSignature = '';
-                let validRequest = {
-                    registerStar: false,
-                    status: requestObject
-                }
+        }
+        if (isIncludedinMemPool >= 0) {
+            requestObject = self.memPool[isIncludedinMemPool];
+            requestObject.messageSignature = request.body.signature;
+            validRequest = {
+                registerStar: false,
+                status: requestObject
             }
-        let isValidSignature = await bitcoinMessage.verify(validRequest.status.message, validRequest.status.address, validRequest.status.messageSignature);
-        if (isValidSignature === true) {
-            validRequest.status.messageSignature = 'valid';
-            validRequest.registerStar = true;
-            self.memPoolValid.push(validRequest);
-            console.log(self.memPoolValid); // VERBOSE
+            let isValidSignature = await bitcoinMessage.verify(validRequest.status.message, validRequest.status.walletAddress, validRequest.status.messageSignature);
+            if (isValidSignature === true) {
+                validRequest.status.messageSignature = 'valid';
+                validRequest.registerStar = true;
+                self.memPoolValid.push(validRequest);
+                console.log(self.memPoolValid); // VERBOSE
+            }
         } else {
             throw new Error;
         }
