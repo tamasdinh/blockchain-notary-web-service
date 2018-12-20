@@ -25,7 +25,7 @@ class Mempool {
                 reject();
             } else {
                 self.memPool.push(request);
-                console.log('MemPool contents:', self.memPool) // VERBOSE
+                console.log('\nMemPool contents:\n', self.memPool) // VERBOSE
                 resolve(request);
             }
         })
@@ -70,7 +70,7 @@ class Mempool {
                 validRequest.registerStar = true;
                 self.memPoolValid.push(validRequest.status.walletAddress);
                 self.memPool.splice(self.memPool.indexOf(requestObject), 1);
-                console.log(self.memPoolValid); // VERBOSE
+                console.log('\nMemPoolValid contents:\n', self.memPoolValid); // VERBOSE
             }
         } else {
             throw new Error;
