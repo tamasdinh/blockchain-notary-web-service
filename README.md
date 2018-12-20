@@ -143,14 +143,13 @@ node app.js
 
 **4.** Test additional functionality:
 
-* Getting star blocks by hash (sample address):
+* Getting star blocks by hash (sample hash):
 
     ```bash
     curl http://localhost:8000/stars/hash/a59e9e399bc17c2db32a7a87379a8012f2c8e08dd661d7c0a6a4845d4f3ffb9f
     ```
 
-* Getting star blocks by wallet address (all star blocks assigned to given wallet address)
-:
+* Getting star blocks by wallet address (all star blocks assigned to given wallet address) - sample address:
 
     ```bash
     curl http://localhost:8000/stars/address/142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ
