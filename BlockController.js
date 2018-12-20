@@ -63,23 +63,14 @@ class BlockController {
     }
 
     // Post validation request
-    postValidationRequest(){
+    postValidationRequest() {
         let self = this;
-        self.app.post("/requestValidation", async function (req, res) {
-            let requestObject = {
-                walletAddress: req.body.address,
-                requestTimeStamp: new Date().getTime().toString().slice(0,-3),
-                message: req.body.address + ':' + new Date().getTime().toString().slice(0,-3) + ':' + 'starRegistry',
-                validationWindow: 0
-            };
-            self.memPool.setTimeOut(requestObject)
-            .then(async result => {
-                requestObject = result;
-                requestObject = await self.memPool.addRequestValidation(requestObject);
-                return res.status(201).json(requestObject);
-            }).catch((err) => {
-                return res.status(403).send(`WalletAddress already in Mempool - please handle already submitted address validation request`)});
-        });
+        self.app.post("/requestValidation", function (req, res) {
+            self.memPool.addRequestValidation(req)
+            .then(result => {
+                return res.status(201).json(result);
+            });
+        })
     }
 
     messageSignatureValidation(){
@@ -97,7 +88,8 @@ class BlockController {
     starRequestValidation(){
         let self = this;
         this.app.post('/block', (req, res) => {
-            if (self.memPool.validateAddressRequest(req.body.address)) {
+            let isDataThere = self.memPool.validateAddressRequest(req.body.address) && req.body.star.ra && req.body.star.dec && req.body.star.story;
+            if (isDataThere) {
                 let body = {
                     address: req.body.address,
                     star: {
@@ -114,7 +106,7 @@ class BlockController {
                     res.status(403).send('Star block could not be created at this time. Please attempt addition at a later time.')
                 })
             } else {
-                return res.status(403).send('Submitted wallet address has not been validated for star registry. Please validate your address at http://localhost:8000/message-signature/validate or resubmit it for validation request at http://localhost:8000/requestValidation.')
+                return res.status(403).send('Error: submitted wallet address has not been validated for star registry or star data not included in star addition request.')
             }
         })
     }
@@ -157,14 +149,21 @@ class BlockController {
 
     getStarBlockByHeight() {
         let self = this;
-        this.app.get('/block/:height', (req, res) => {
-            self.blockChain.getBlock(req.params.height)
-            .then((result) => {
-                result.body.star.storyDecoded = hex2ascii(result.body.star.story);
-                res.status(200).json(result);
-            }).catch(err => {
-                res.status(403).send(`Error occurred when trying to obtain star block #${req.params.height}`);
-            })
+        this.app.get('/block/:height', async (req, res) => {
+            let blockHeight = await self.blockChain.getBlockHeight();
+            if (blockHeight === 1) {
+                res.status(403).send('Only Genesis Block exists in blockchain. Cannot retrieve star data.')
+            } else if (!(req.params.height > 0)) {
+                res.status(403).send('Cannot retrieve star data from Genesis Block.');
+            } else {
+                self.blockChain.getBlock(req.params.height)
+                .then((result) => {
+                    result.body.star.storyDecoded = hex2ascii(result.body.star.story);
+                    res.status(200).json(result);
+                }).catch(err => {
+                    res.status(403).send(`Error occurred when trying to obtain star block #${req.params.height}`);
+                })
+            }
         })
     }
 
