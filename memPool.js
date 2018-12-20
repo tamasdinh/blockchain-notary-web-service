@@ -16,8 +16,7 @@ class Mempool {
         let requestObject = {
             walletAddress: req.body.address,
             requestTimeStamp: new Date().getTime().toString().slice(0,-3),
-            message: req.body.address + ':' + 'starRegistry',
-            //message: req.body.address + ':' + new Date().getTime().toString().slice(0,-3) + ':' + 'starRegistry',
+            message: req.body.address + ':' + new Date().getTime().toString().slice(0,-3) + ':' + 'starRegistry',
             validationWindow: 0
         };
         if (self.memPool.length > 0) {
